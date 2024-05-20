@@ -1,4 +1,5 @@
 from enum import Enum
+from msd import MSD
 
 import math
 import numpy as np
@@ -6,6 +7,7 @@ import numpy as np
 class PeakMeasures(Enum):
     NN_DIST = 'Nearest neighbour distance'
     NN_ID = 'Nearest neighbour ID'
+    INST_MSD = 'Instantaneous MSD'
 
 class TrackMeasures(Enum):
     MSD = 'MSD'
@@ -91,6 +93,12 @@ class Track:
     def get_sigmas(self):
         return [peak.c for peak in self.peaks.values()]
     
+    def calculate_msd(self,spatial_scale=1,spatial_units="pixels",time_scale=1,time_units="frames"):
+        self.measures[TrackMeasures.MSD] = MSD(self,spatial_scale=spatial_scale,spatial_units=spatial_units,time_scale=time_scale,time_units=time_units)
+
+    def calculate_instantaneous_msd():
+        print("To do")
+
     def calculate_stationary_probability(self, kymo_size, link_dist=3):
         counts = np.zeros(kymo_size)
 

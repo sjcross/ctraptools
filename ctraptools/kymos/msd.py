@@ -3,7 +3,6 @@ from scipy.optimize import curve_fit
 
 import csv
 import matplotlib.pyplot as plt
-import numpy as np
 
 class MSD:
     def __init__(self,track,spatial_scale=1,spatial_units="pixels",time_scale=1,time_units="frames"):

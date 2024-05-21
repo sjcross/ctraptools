@@ -241,4 +241,9 @@ def plot_gauss_for_frame(peaks, frame, image, half_t_w=3):
     plt.ylabel('Intensity')
     plt.show()
 
+def plot_inst_msd(peaks):
+    fig = plt.figure()
 
+    
+
+    return fig

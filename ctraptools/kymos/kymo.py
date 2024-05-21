@@ -1,5 +1,5 @@
 from enum import Enum
-from msd import MSD
+from ctraptools.kymos.msd import MSD
 
 import math
 import numpy as np
@@ -8,6 +8,7 @@ class PeakMeasures(Enum):
     NN_DIST = 'Nearest neighbour distance'
     NN_ID = 'Nearest neighbour ID'
     INST_MSD = 'Instantaneous MSD'
+    INST_D_COEFF = 'Instantaneous diffusion coefficient'
 
 class TrackMeasures(Enum):
     MSD = 'MSD'
@@ -93,11 +94,26 @@ class Track:
     def get_sigmas(self):
         return [peak.c for peak in self.peaks.values()]
     
-    def calculate_msd(self,spatial_scale=1,spatial_units="pixels",time_scale=1,time_units="frames"):
-        self.measures[TrackMeasures.MSD] = MSD(self,spatial_scale=spatial_scale,spatial_units=spatial_units,time_scale=time_scale,time_units=time_units)
+    def calculate_msd(self,spatial_scale=1,spatial_units="pixels",time_scale=1,time_units="frames",calculate_D=True,max_dt=50):
+        curr_msd = MSD(self,spatial_scale=spatial_scale,spatial_units=spatial_units,time_scale=time_scale,time_units=time_units)
 
-    def calculate_instantaneous_msd():
-        print("To do")
+        if calculate_D:
+            curr_msd.measure_diffusion_coefficient(max_dt=max_dt)
+
+        self.measures[TrackMeasures.MSD] = curr_msd
+
+    def calculate_instantaneous_msd(self, half_w=5, spatial_scale=1,spatial_units="pixels",time_scale=1,time_units="frames",calculate_D=True,max_dt=50):
+        for peak in self.peaks.values():
+            # Get subtrack
+            subtrack = self.extract_subtrack(peak.t-half_w,peak.t+half_w)
+
+            # Measure MSD
+            curr_msd = MSD(subtrack,spatial_scale=spatial_scale,spatial_units=spatial_units,time_scale=time_scale,time_units=time_units)        
+
+            if calculate_D:
+                peak.measures[PeakMeasures.INST_D_COEFF] = curr_msd.measure_diffusion_coefficient(max_dt=max_dt)[0]
+
+            peak.measures[PeakMeasures.INST_MSD] = curr_msd
 
     def calculate_stationary_probability(self, kymo_size, link_dist=3):
         counts = np.zeros(kymo_size)
@@ -131,5 +147,13 @@ class Track:
 
         return counts
     
+    def extract_subtrack(self, start_t, end_t):
+        subtrack = Track(str(self.ID)+"_"+str(start_t)+"-"+str(end_t))
+
+        for peak in self.peaks.values():
+            if peak.t >= start_t and peak.t <= end_t:
+                subtrack.add_peak(peak)
+
+        return subtrack
 
     
